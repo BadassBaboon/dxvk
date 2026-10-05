@@ -7,8 +7,10 @@ namespace dxvk {
     enableMemoryDefrag    = config.getOption<Tristate>("dxvk.enableMemoryDefrag",     Tristate::Auto);
     numCompilerThreads    = config.getOption<int32_t> ("dxvk.numCompilerThreads",     0);
     enableGraphicsPipelineLibrary = config.getOption<Tristate>("dxvk.enableGraphicsPipelineLibrary", Tristate::Auto);
-    enableDescriptorHeap  = config.getOption<Tristate>("dxvk.enableDescriptorHeap",   Tristate::Auto);
-    enableDescriptorBuffer = config.getOption<Tristate>("dxvk.enableDescriptorBuffer", Tristate::Auto);
+    // RealityFX build: ReShade add-ons need classic descriptor sets, so heaps and
+    // descriptor buffers default to off. dxvk.conf can still override this.
+    enableDescriptorHeap  = config.getOption<Tristate>("dxvk.enableDescriptorHeap",   Tristate::False);
+    enableDescriptorBuffer = config.getOption<Tristate>("dxvk.enableDescriptorBuffer", Tristate::False);
     enableDescriptorUpdateTemplates = config.getOption<bool>("dxvk.enableDescriptorUpdateTemplates", false);
     enableUnifiedImageLayout = config.getOption<bool> ("dxvk.enableUnifiedImageLayouts", true);
     enableImplicitResolves = config.getOption<bool>   ("dxvk.enableImplicitResolves", true);
@@ -27,7 +29,7 @@ namespace dxvk {
     allowFse              = config.getOption<bool>    ("dxvk.allowFse",               false);
     deviceFilter          = config.getOption<std::string>("dxvk.deviceFilter",        "");
     lowerSinCos           = config.getOption<Tristate>("dxvk.lowerSinCos",            Tristate::Auto);
-    vendorNeutralShaders  = config.getOption<bool>    ("dxvk.vendorNeutralShaders",   false);
+    vendorNeutralShaders  = config.getOption<bool>    ("dxvk.vendorNeutralShaders",   true);
     tilerMode             = config.getOption<Tristate>("dxvk.tilerMode",              Tristate::Auto);
 
     auto budget = config.getOption<int32_t>("dxvk.maxMemoryBudget", 0);

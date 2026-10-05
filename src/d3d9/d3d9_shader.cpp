@@ -7,6 +7,7 @@
 #include <sm3/sm3_parser.h>
 #include <sm3/sm3_converter.h>
 #include <sm3/sm3_types.h>
+#include <util/util_md5.h>
 
 namespace dxvk {
 
@@ -1106,9 +1107,28 @@ namespace dxvk {
 
     ~D3D9ShaderConverter() { }
 
+    std::string sourceHash() const {
+      auto digest = dxbc_spv::util::md5::Hasher::compute(m_dxbc.data(), m_dxbc.size());
+
+      static const char hex[] = "0123456789abcdef";
+      std::string result;
+      result.reserve(2u * digest.data.size());
+
+      for (uint8_t b : digest.data) {
+        result.push_back(hex[b >> 4u]);
+        result.push_back(hex[b & 0xfu]);
+      }
+
+      return result;
+    }
+
     void convertShader(
             dxbc_spv::ir::Builder&    builder) {
-      auto debugName = m_key.toString();
+      // RealityFX build: the name embedded in the SPIR-V also carries the MD5 of
+      // the game's original bytecode. The rest of the module changes with every
+      // compiler change; this part identifies the game shader in any DXVK version
+      // and on any device. The cache key (m_key) is unchanged.
+      auto debugName = m_key.toString() + ";d3d9=" + sourceHash();
 
       bool isVs = m_key.stage() == VK_SHADER_STAGE_VERTEX_BIT;
 
