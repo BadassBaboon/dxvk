@@ -914,6 +914,23 @@ namespace dxvk {
     // FP16 arithmetic depends on device support, so leave it off
     m_shaderOptions.flags.clr(DxvkShaderCompileFlag::Supports16BitArithmetic);
 
+    // Driver workarounds that rewrite shader code, pinned to what Windows
+    // Nvidia (580+) and AMD drivers get, the devices the RealityFX hashes
+    // were authored and verified on. Otherwise Intel (sin/cos lowering),
+    // Nvidia before 580 (uint-to-float lowering) and Mesa drivers under
+    // Proton (no FtoI, F32toF16 or constant array lowering) each compile
+    // shaders that use these instructions differently, and replacements of
+    // them never match there. dxvk.lowerSinCos = True still forces the
+    // Intel lowering for users who need its accuracy over replacements.
+    if (m_options.lowerSinCos != Tristate::True)
+      m_shaderOptions.flags.clr(DxvkShaderCompileFlag::LowerSinCos);
+
+    m_shaderOptions.flags.clr(DxvkShaderCompileFlag::LowerItoF);
+    m_shaderOptions.flags.set(
+      DxvkShaderCompileFlag::LowerFtoI,
+      DxvkShaderCompileFlag::LowerF32toF16,
+      DxvkShaderCompileFlag::LowerConstantArrays);
+
     // Float controls: drivers advertise different modes, and with
     // float_controls2 the shader declares them differently again.
     // Keep the one mode D3D9 shaders need. Raw access chains are an
