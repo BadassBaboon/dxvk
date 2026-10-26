@@ -98,7 +98,7 @@ namespace dxvk {
       this->d3d9FloatEmulation = D3D9FloatEmulation::Disabled;
     } else if (floatEmulation == "true") {
       this->d3d9FloatEmulation = D3D9FloatEmulation::Enabled;
-    } else if (config.getOption<bool>("dxvk.vendorNeutralShaders", false)) {
+    } else if (config.getOption<bool>("dxvk.vendorNeutralShaders", true)) {
       // One emulation mode on every driver, the one all of them support
       this->d3d9FloatEmulation = D3D9FloatEmulation::Enabled;
     } else {

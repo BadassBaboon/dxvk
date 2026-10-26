@@ -80,7 +80,7 @@ namespace dxvk {
     /// where DXVK would otherwise pick a code path per vendor, so
     /// that tools which identify shaders by their generated SPIR-V
     /// see one shader everywhere. May cost some performance.
-    bool vendorNeutralShaders = false;
+    bool vendorNeutralShaders = true;
 
     /// Enables implicit resolves that are used to
     /// deal with MSAA-related undefined behaviour.
