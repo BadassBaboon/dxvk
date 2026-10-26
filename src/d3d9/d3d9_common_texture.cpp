@@ -320,6 +320,9 @@ namespace dxvk {
     if (likely(m_buffer != nullptr))
       return;
 
+    if (unlikely(m_locked.any() && m_data))
+      Logger::err("Switching from memory file to buffer while one of the subresources is locked!");
+
     DxvkBufferCreateInfo info;
     info.size   = Size;
     info.usage  = VK_BUFFER_USAGE_TRANSFER_SRC_BIT

@@ -5029,25 +5029,31 @@ namespace dxvk {
     if (desc.Usage & D3DUSAGE_WRITEONLY)
       Flags &= ~D3DLOCK_READONLY;
 
-    // If we recently wrote to the texture on the gpu,
-    // then we need to copy -> buffer
-    // We are also always dirty if we are a render target,
-    // a depth stencil, or auto generate mipmaps.
+    // If we recently wrote to the texture on the gpu, then we need to copy -> buffer
+    // We are also always dirty if we are a render target, a depth stencil.
     bool renderable = desc.Usage & (D3DUSAGE_RENDERTARGET | D3DUSAGE_DEPTHSTENCIL);
     bool needsReadback = pResource->NeedsReadback(Subresource) || renderable;
+
+    // Don't use MapTexture here to keep the mapped list small while the resource is still locked.
+    void* mapPtr = pResource->GetData(Subresource);
+
+    // Backport of upstream 3a71f3cc "[d3d9] Switch texture map data to buffers early".
+    // Creating the buffer moves the whole resource off its memory file and frees it,
+    // so a pointer the game still holds for another locked subresource would point
+    // at freed memory (writes into it corrupt the heap). Switch once, for the whole
+    // resource and with its contents, before any subresource hands out a pointer.
+    bool needsBuffer = mapPtr == nullptr
+      || pResource->GetMapMode() == D3D9_COMMON_TEXTURE_MAP_MODE_BACKED;
+    needsBuffer |= pResource->GetBuffer() == nullptr && (pResource->NeedsAnyReadback() || renderable);
+    if (unlikely(needsBuffer && pResource->GetBuffer() == nullptr)) {
+      pResource->CreateBuffer(true, pResource->GetTotalSize());
+      mapPtr = pResource->GetData(Subresource);
+    }
 
     // Skip readback if we discard is specified. We can only do this for textures that have an associated Vulkan image.
     // Any other texture might write to the Vulkan staging buffer directly. (GetBackbufferData for example)
     needsReadback &= pResource->GetImage() != nullptr || !(Flags & D3DLOCK_DISCARD);
     pResource->SetNeedsReadback(Subresource, false);
-
-    if (unlikely(pResource->GetMapMode() == D3D9_COMMON_TEXTURE_MAP_MODE_BACKED || needsReadback)) {
-      // Create mapping buffer if it doesn't exist yet. (POOL_DEFAULT)
-      pResource->CreateBuffer(!needsReadback, pResource->GetTotalSize());
-    }
-
-    // Don't use MapTexture here to keep the mapped list small while the resource is still locked.
-    void* mapPtr = pResource->GetData(Subresource);
 
     if (unlikely(needsReadback)) {
       // The texture was written to on the GPU.

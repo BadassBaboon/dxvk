@@ -384,6 +384,8 @@ namespace dxvk {
 
     bool NeedsReadback(UINT Subresource) const { return m_needsReadback.get(Subresource); }
 
+    bool NeedsAnyReadback() const { return m_needsReadback.any(); }
+
     void MarkAllNeedReadback() { m_needsReadback.setAll(); }
 
     const Rc<DxvkImageView>& GetSampleView(bool srgb) const {
