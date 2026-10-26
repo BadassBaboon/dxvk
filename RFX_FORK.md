@@ -12,6 +12,7 @@ loads DXVK's D3D9 module as `vulkan.dll`). Everything else is upstream DXVK.
 | Descriptor heaps and descriptor buffers default to off | `src/dxvk/dxvk_options.cpp` | ReShade add-ons need classic descriptor sets |
 | Source hash in each D3D9 shader's name: `<key>;d3d9=<md5>` | `D3D9ShaderConverter::convertShader()` in `src/d3d9/d3d9_shader.cpp` | MD5 of the game's original bytecode: identifies a game shader in any DXVK version and on any device |
 | Vendor-neutral mode also pins the driver workarounds that rewrite code: sin/cos lowering off (Intel), uint-to-float lowering off (Nvidia before 580), FtoI, F32toF16 and constant-array lowering on (off on Mesa) | `applyVendorNeutralShaderOptions()` | Each of these compiled affected shaders differently on Intel, older Nvidia drivers and Mesa (Proton), so replacements of them never matched there. `dxvk.lowerSinCos = True` still forces Intel's lowering |
+| Vendor-neutral mode caps the UBO range used for code generation at 64 KiB | `applyVendorNeutralShaderOptions()` | A constant buffer above the range compiles as a storage buffer; Nvidia's 64 KiB is the smallest verified range, so every device decides the same way |
 | `dxvk.sortAdaptersByMemory`: within a device type, the GPU with the most dedicated memory comes first | `DxvkInstance::queryAdapters()` in `src/dxvk/dxvk_instance.cpp`, `src/dxvk/dxvk_options.*` | Upstream keeps the Vulkan loader's order, so with two dedicated GPUs (or a second GPU reported as dedicated) D3D9 adapter 0 could be the smaller one |
 | GTA IV / EFLC profile adds `dxvk.hideIntegratedGraphics = True` and `dxvk.sortAdaptersByMemory = True` | `src/util/config/config.cpp` | GTA IV renders on adapter 0: never an integrated GPU while a dedicated one exists, and the largest dedicated GPU first |
 | `build-msvc32.bat` | repository root | Builds `out\vulkan.dll` (32-bit, MSVC) |
@@ -35,7 +36,10 @@ lock, `89b5490f` FlushImage, `8907e060` scratch memory suballocation,
 `d7e283b1` mipmap counter memory, `e0fa1bc8` stencil resolve, `d3d57f45` spec
 constant dirty mask, `0ae00031` and `b17c9679` meta copies, `ac400e40` and
 `14260d1d` clears, `1de51b9d` fence queue order, `7e03c549` CS thread waiters,
-`cb253e0c` command buffer splitting, `29dd21b3` memory priority.
+`cb253e0c` command buffer splitting, `29dd21b3` memory priority, `8c8937dd`
+shader cache instance freed while in use, `a5250d4a` shader cache LUT reset,
+`7d248817` fixed-function null texture revert, `89e9eca9` cubemap face
+alignment, `d263e090` fewer CS calls in StretchRect.
 
 `3a71f3cc` (switch texture map data to buffers early) is backported by hand to
 the fork's map-mode code, which the upstream commit does not apply to. Without

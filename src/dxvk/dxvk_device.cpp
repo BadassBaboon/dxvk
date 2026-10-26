@@ -958,6 +958,13 @@ namespace dxvk {
       DxvkShaderSpirvFlag::IndependentDenormMode,
       DxvkShaderSpirvFlag::SupportsFloatControls2);
 
+    // A constant buffer larger than the UBO range becomes a storage buffer.
+    // Nvidia's 64 KiB range is the smallest of the verified devices, so use
+    // it everywhere a device allows it. D3D9 constant sets stay far below it
+    // with hardware vertex processing; the storage buffer alignment and the
+    // UBO count only affect resource types D3D9 shaders do not use.
+    m_shaderOptions.maxUniformBufferSize = std::min(m_shaderOptions.maxUniformBufferSize, 65536u);
+
     if (szInfNan32)
       m_shaderOptions.spirv.set(DxvkShaderSpirvFlag::SupportsSzInfNanPreserve32);
     else
