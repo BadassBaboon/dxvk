@@ -25,6 +25,7 @@ namespace dxvk {
     latencyTolerance      = config.getOption<int32_t> ("dxvk.latencyTolerance",       1000);
     disableNvLowLatency2  = config.getOption<Tristate>("dxvk.disableNvLowLatency2",   Tristate::Auto);
     hideIntegratedGraphics = config.getOption<bool>   ("dxvk.hideIntegratedGraphics", false);
+    sortAdaptersByMemory  = config.getOption<bool>    ("dxvk.sortAdaptersByMemory",   false);
     zeroMappedMemory      = config.getOption<bool>    ("dxvk.zeroMappedMemory",       false);
     allowFse              = config.getOption<bool>    ("dxvk.allowFse",               false);
     deviceFilter          = config.getOption<std::string>("dxvk.deviceFilter",        "");

@@ -644,6 +644,12 @@ namespace dxvk {
       { "dxgi.maxDeviceMemory",              "128" },
       { "d3d9.supportDFFormats",           "False" },
       { "d3d9.deviceLossOnFocusLoss",       "True" },
+      /* RealityFX: GTA IV renders on D3D9 adapter 0, which is DXVK's    *
+       * first adapter. Skip integrated GPUs when a dedicated one exists *
+       * and, among dedicated GPUs, take the one with the most video     *
+       * memory, so a second GPU in the system is not picked.            */
+      { "dxvk.hideIntegratedGraphics",      "True" },
+      { "dxvk.sortAdaptersByMemory",        "True" },
     }} },
     /* Battlefield 2 & Battlefield 2142           *
      * Bad z-pass and ingame GUI loss on alt tab  *

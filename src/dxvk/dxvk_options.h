@@ -61,6 +61,13 @@ namespace dxvk {
     // incorrectly assume monitor layouts.
     bool hideIntegratedGraphics = false;
 
+    /// RealityFX: among GPUs of the same type, list the one with the most
+    /// dedicated video memory first. Upstream keeps the Vulkan loader's
+    /// order, so on systems with two discrete GPUs (or a second GPU the
+    /// driver reports as discrete) adapter 0, which D3D9 games use, could
+    /// be the smaller one.
+    bool sortAdaptersByMemory = false;
+
     /// Clears all mapped memory to zero.
     bool zeroMappedMemory = false;
 

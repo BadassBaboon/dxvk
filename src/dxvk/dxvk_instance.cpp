@@ -321,8 +321,22 @@ namespace dxvk {
       }
     }
 
+    // RealityFX (dxvk.sortAdaptersByMemory): within a device type, most
+    // dedicated (device-local) memory first. Equal GPUs keep the loader's order.
+    auto deviceLocalBytes = [] (const Rc<DxvkAdapter>& adapter) {
+      const VkPhysicalDeviceMemoryProperties& mem = adapter->memoryProperties();
+      VkDeviceSize total = 0;
+      for (uint32_t i = 0; i < mem.memoryHeapCount; i++) {
+        if (mem.memoryHeaps[i].flags & VK_MEMORY_HEAP_DEVICE_LOCAL_BIT)
+          total += mem.memoryHeaps[i].size;
+      }
+      return total;
+    };
+
+    const bool sortByMemory = m_options.sortAdaptersByMemory;
+
     std::stable_sort(m_adapters.begin(), m_adapters.end(),
-      [] (const Rc<DxvkAdapter>& a, const Rc<DxvkAdapter>& b) -> bool {
+      [&] (const Rc<DxvkAdapter>& a, const Rc<DxvkAdapter>& b) -> bool {
         static const std::array<VkPhysicalDeviceType, 3> deviceTypes = {{
           VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU,
           VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU,
@@ -337,7 +351,10 @@ namespace dxvk {
           if (b->info().deviceType == deviceTypes[i]) bRank = i;
         }
 
-        return aRank < bRank;
+        if (aRank != bRank || !sortByMemory)
+          return aRank < bRank;
+
+        return deviceLocalBytes(a) > deviceLocalBytes(b);
       });
 
     if (m_options.hideIntegratedGraphics && numDGPU > 0 && numIGPU > 0) {
